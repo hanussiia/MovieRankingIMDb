@@ -43,6 +43,7 @@ def filtring_by_date(start_date:int, end_date: int, basics_df:pd.DataFrame, rati
 
 
 def normalization_min_max(df:pd.DataFrame, column_result: str, column_for_norm: str):
+
     df[column_result] = (10 * (df[column_for_norm] - df[column_for_norm].min()) \
                               /(df[column_for_norm].max() - df[column_for_norm].min()))
 
@@ -91,7 +92,6 @@ def task1_preprocessing(n, start_date, end_date):
     ratings_df = cleaning_rating_data(ratings_df)
 
     
-
     return ratings_df
 
 
@@ -132,7 +132,6 @@ def analiza(n: int, start_date: int, end_date: int):
 
     res_rating = task1_postprocessing_and_display(res_rating)
 
-    
 
     #CINEMATIC IMPACT
     gdp_ppl_df = csv_gdp_ppl('gdp.csv', 'population.csv')
@@ -192,4 +191,5 @@ def analiza(n: int, start_date: int, end_date: int):
     #cinematic_impact = cinematic_impact.drop(['movieRatingSum', 'movieRatingTop', 'countRating', 'CountryCode'], axis=1, inplace=True)
     print(cinematic_impact)
 
-analiza(n, start_date, end_date)
+if __name__ == '__main__':
+    analiza(n, start_date, end_date) 
