@@ -96,7 +96,7 @@ def task1_preprocessing(n, start_date, end_date):
 
 
 
-def task1_weak_impact_calculation(ratings_df:pd.DataFrame):
+def task1_impact_calculation(ratings_df:pd.DataFrame):
 
     impact = ratings_df['region'].value_counts().reset_index()
     impact.rename(columns={'count': 'weakImpact'}, inplace=True)
@@ -118,7 +118,7 @@ def task1_postprocessing_and_display(res_rating):
 def analiza(n: int, start_date: int, end_date: int):
 
     ratings_df= task1_preprocessing(n, start_date, end_date)
-    impact, total_sum_by_region = task1_weak_impact_calculation(ratings_df)
+    impact, total_sum_by_region = task1_impact_calculation(ratings_df)
 
     res_rating = total_sum_by_region.merge(impact, on=['region'], how='inner')
     normalization_min_max(res_rating, 'movieRatingTop', 'movieRatingSum')
