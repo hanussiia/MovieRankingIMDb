@@ -1,8 +1,8 @@
 import argparse
 import director_analizes as da
 import country_analizes as ca
-import pandas as pd
 import os
+
 
 def isExists(path):
     return os.path.exists(path)
@@ -44,19 +44,23 @@ def main():
 
     args = parser.parse_args()
 
-    if validate_pathes(args):
-        try:
+    if args.start_date > args.end_date:
+         raise Exception('Start_date must be lower then end_date or equals!')
 
+    if validate_pathes(args):
+        #try:
             if args.analize == 'country':
-                pass
+                    country_pathes = [args.ratings_path, args.basics_path, args.akas_path, args.gdp_path, args.population_path]
+                    ca.analiza(country_pathes, args.n, args.start_date, args.end_date, args.genre)
 
             if args.analize == 'director':
-                pass
+                    director_pathes = [args.ratings_path, args.basics_path, args.crew_path, args.name_path]
+                    da.analiza(director_pathes, args.n, args.start_date, args.end_date, args.genre)
         
-        except Exception as InvalidNumber:
-            print(f"Something went wrong!")
+        #except Exception as excep:
+            # print(excep)
+            # print(f"Something went wrong!")
 
 
 if __name__ == '__main__':
-
     main()
