@@ -61,7 +61,6 @@ def impact_directors_calc(df: pd.DataFrame):
 
     total_sum_by_director.drop('sumRating', axis=1, inplace=True)
     total_sum_by_director.drop('numVotes', axis=1, inplace=True)
-    print(total_sum_by_director)
 
     return total_sum_by_director
 
@@ -77,8 +76,8 @@ def stand_deriv(df: pd.DataFrame, impact_df: pd.DataFrame, column_group: str, co
 
 
 def final_rating(df: pd.DataFrame):
-    global_rating = int(df['averRating'].mean())
-    global_votes= int(df['averNumVotes'].mean())
+    # global_rating = int(df['averRating'].mean())
+    # global_votes= int(df['averNumVotes'].mean())
    
     ca.normalization_min_max(df, 'count_norm', 'count')
     ca.normalization_min_max(df, 'averRating_norm', 'averRating')
@@ -96,6 +95,15 @@ def final_rating(df: pd.DataFrame):
     df = df.reset_index(drop=True)
     return df
 
+def display(impact_directors):
+    cols_to_display = ['directors', 'directorName', 'count', 'averRating', 'averNumVotes', 'FinalRating']
+    impact_directors = impact_directors.round({"averRating":2, "FinalRating":2}) 
+    
+    impact_directors = impact_directors[cols_to_display]
+    impact_directors = impact_directors.sort_values('FinalRating', ascending=False)
+    impact_directors = impact_directors.reset_index(drop=True)
+    
+    return impact_directors[cols_to_display]
 
 def analiza(pathes, n: int, start_date: int, end_date: int, genre:str=None):
         
@@ -115,4 +123,8 @@ def analiza(pathes, n: int, start_date: int, end_date: int, genre:str=None):
     # impact_directors.rename(columns={'std': 'stdRating'}, inplace=True)
 
     impact_directors = final_rating(impact_directors)
+    impact_directors = display(impact_directors)
+    print('--------------------')
+    print("RATING BY DIRECTORS")
+    print('--------------------')
     print(impact_directors.head(10))

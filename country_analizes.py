@@ -92,8 +92,12 @@ def filtring_by_genre(genre: str, basics_df: pd.DataFrame):
     return basics_df
 
 
-def final_rating(df: pd.DataFrame, column1: str, column2: str):
-    df['Total'] = (df[column1]*1.5 + df[column2]*0.5)/2
+def final_rating(weights, df: pd.DataFrame, column1: str, column2: str, column3: str=None):
+    if column3 is None:
+        df['Total'] = (df[column1] * weights[0] + df[column2] * weights[1])/2
+
+    else:
+        df['Total'] = (df[column1] * weights[0] + df[column2] * weights[1] + df[column3] * weights[2])/3
 
     df = df.sort_values('Total', ascending=False)
     df = df.reset_index(drop=True)
@@ -132,7 +136,9 @@ def task1_preprocessing(n, start_date, end_date, pathes, genre:str):
             raise Exception(name)
         
     normalization_min_max(ratings_df, 'numVotes', 'numVotes')
-    ratings_df = final_rating(ratings_df, 'averageRating', 'numVotes')
+
+    #weights for final rating, 1.5 for averRating, 0.5 for numVotes
+    ratings_df = final_rating([1.5, 0.5], ratings_df, 'averageRating', 'numVotes')
     ratings_df = ratings_df.head(n)
     
     akas_filter_region(region_df)
@@ -150,16 +156,36 @@ def task1_impact_calculation(ratings_df:pd.DataFrame):
 
     total_sum_by_region = ratings_df.groupby('region')['Total'].sum().reset_index()
     total_sum_by_region.rename(columns={'Total': 'movieRatingSum'}, inplace=True)
+    
+    total_numVotes_by_region  = ratings_df.groupby('region')['numVotes'].sum().reset_index()
+    total_numVotes_by_region.rename(columns={'numVotes': 'numVotesSum'}, inplace=True)
 
-    return impact, total_sum_by_region
+    total_sum_numVotes = pd.merge(total_sum_by_region, total_numVotes_by_region, on=['region'])
+    return impact, total_sum_numVotes
 
 
-def task1_2_postprocessing_and_display(res_rating):
+def task1_postprocessing_and_display(res_rating):
     res_rating['country'] = res_rating['region'].astype(str).map(ci.COUNTRY_INDEX)
-    cols_to_display = ['region', 'country', 'movieRatingSum', 'weakImpact', 'averageMovieRating', 'movieRatingTop', 'countRating', 'RatingQuality',]
-    res_rating = res_rating.sort_values('RatingQuality', ascending=False).reset_index()
+
+    cols_to_display = ['region', 'country', 'weakImpact', 'averageNumVotes', 'averageMovieRating', 'qualityRating']
+    res_rating = res_rating.sort_values('qualityRating', ascending=False).reset_index()
+
+    res_rating = res_rating.round({"averageMovieRating":2, "qualityRating":2, "averageNumVotes":2})
+    print('---------------------------')
+    print("    RATING BY COUNTRIES")
+    print('---------------------------')
     print(res_rating[cols_to_display].head(10))
+    
     return res_rating[cols_to_display]
+
+def task2_postprocessing_and_display(cinematic_impact):
+    cinematic_impact['hegemony'] = cinematic_impact['strongImpactRating'] - cinematic_impact['gdpRating']
+    cols_to_display = ['region', 'country', 'weakImpactRating', 'strongImpactRating', 'gdpRating', 'populationRating', 'hegemony']
+
+    cinematic_impact = cinematic_impact.sort_values('strongImpactRating', ascending=True)
+    cinematic_impact = cinematic_impact.reset_index(drop=True)
+    
+    return cinematic_impact[cols_to_display]
 
 
 def sorting_and_mapping(df: pd.DataFrame, res_df: pd.DataFrame, res_column_name: str, country_column_res: str, country_column: str, column_for_sorting: str):
@@ -170,23 +196,25 @@ def sorting_and_mapping(df: pd.DataFrame, res_df: pd.DataFrame, res_column_name:
 
     return res_df
 
+
 def analiza(pathes, n: int, start_date: int, end_date: int, genre: str=None):
     ratings_path, basics_path, akas_path, gdp_path, population_path = pathes
 
     ratings_df= task1_preprocessing(n, start_date, end_date, (ratings_path, basics_path, akas_path), genre)
-    impact, total_sum_by_region = task1_impact_calculation(ratings_df)
-
-    res_rating = total_sum_by_region.merge(impact, on=['region'], how='inner')
-
+    impact, total_sum_numVotes = task1_impact_calculation(ratings_df)
+    res_rating = total_sum_numVotes.merge(impact, on=['region'], how='inner')
     res_rating['averageMovieRating'] = res_rating['movieRatingSum'] / res_rating['weakImpact']
+    res_rating['averageNumVotes'] = res_rating['numVotesSum'] / res_rating['weakImpact']
 
-    normalization_min_max(res_rating, 'movieRatingTop', 'averageMovieRating')
+    normalization_min_max(res_rating, 'movieRating', 'averageMovieRating')
     normalization_min_max(res_rating, 'countRating', 'weakImpact')
+    normalization_min_max(res_rating, 'votesRating', 'averageNumVotes')
 
-    res_rating = final_rating(res_rating, 'movieRatingTop', 'countRating')
-    res_rating.rename(columns={'Total': 'RatingQuality'}, inplace=True)
+    #weights for final rating, 1.3 for movieRating, 0.7 for countRating, 1 for votesRating
+    res_rating = final_rating([1.3, 0.7, 1], res_rating, 'movieRating', 'countRating', 'votesRating')
+    res_rating.rename(columns={'Total': 'qualityRating'}, inplace=True)
 
-    res_rating = task1_2_postprocessing_and_display(res_rating)
+    final_rating_df = task1_postprocessing_and_display(res_rating)
 
 
     #CINEMATIC IMPACT
@@ -198,47 +226,51 @@ def analiza(pathes, n: int, start_date: int, end_date: int, genre: str=None):
     impact = impact.reset_index(drop=True)
 
     cinematic_impact = pd.DataFrame({
-        'Country': impact['region'],
-        'WeakImpactRating': impact.index + 1
+        'country': impact['region'],
+        'weakImpactRating': impact.index + 1
     }).reset_index(drop=True)
 
-    normalization_min_max(gdp_ppl_df, 'GDP_normalized', 'GDP')
-    normalization_min_max(gdp_ppl_df, 'Population_normalized', 'Population')
+    normalization_min_max(gdp_ppl_df, 'gdp_normalized', 'GDP')
+    normalization_min_max(gdp_ppl_df, 'population_normalized', 'Population')
 
     weights = {
         'GDP': 0.1,
         'Population': 0.05,
-        'MoviesCount': 0.35,
-        'AverageRating': 0.5    
+        'MoviesCount': 0.25,
+        'AverageRating': 0.4,    
+        'Votes': 0.2
     }
 
-    cinematic_impact['Region'] = cinematic_impact['Country']
-    cinematic_impact = pd.merge(cinematic_impact, res_rating[['region', 'movieRatingTop', 'countRating']], left_on='Region', right_on='region', how='inner')
-    cinematic_impact.drop('region', axis=1, inplace=True)
+    cinematic_impact['region'] = cinematic_impact['country']
+    cinematic_impact = pd.merge(cinematic_impact, res_rating[['region', 'movieRating', 'countRating', 'votesRating']], on='region', how='inner')
 
-    cinematic_impact['Country'] = cinematic_impact['Country'].astype(str).map(ci.COUNTRY_INDEX)
-    cinematic_impact = pd.merge(cinematic_impact, gdp_ppl_df[['CountryName', 'GDP_normalized', 'Population_normalized']], left_on='Country', right_on='CountryName', how='inner')
+    cinematic_impact['country'] = cinematic_impact['country'].astype(str).map(ci.COUNTRY_INDEX)
+    cinematic_impact = pd.merge(cinematic_impact, gdp_ppl_df[['CountryName', 'gdp_normalized', 'population_normalized']], left_on='country', right_on='CountryName', how='inner')
     cinematic_impact.drop('CountryName', axis=1, inplace=True)
 
 
     cinematic_impact['strongImpact'] = (
-        weights['GDP'] * cinematic_impact['GDP_normalized'] +
-        weights['Population'] * cinematic_impact['Population_normalized'] +
+        weights['GDP'] * cinematic_impact['gdp_normalized'] +
+        weights['Population'] * cinematic_impact['population_normalized'] +
         weights['MoviesCount'] * cinematic_impact['countRating'] +
-        weights['AverageRating'] * cinematic_impact['movieRatingTop']
+        weights['AverageRating'] * cinematic_impact['movieRating'] + 
+        weights['Votes'] *  cinematic_impact['votesRating']
     )
     
     cinematic_impact = cinematic_impact.sort_values('strongImpact', ascending=False)
     cinematic_impact = cinematic_impact.reset_index(drop=True)
-    cinematic_impact['RatingStrongImpact'] = cinematic_impact.index + 1
-    #cinematic_impact = sorting_and_mapping(cinematic_impact, cinematic_impact, 'RatingStrongImpact', 'Region', 'Region', 'strongImpact')
+    cinematic_impact['strongImpactRating'] = cinematic_impact.index + 1
     
-    cinematic_impact = sorting_and_mapping(gdp_ppl_df, cinematic_impact, 'RatingGDP', 'Country', 'CountryName', 'GDP')
-    cinematic_impact = sorting_and_mapping(gdp_ppl_df, cinematic_impact, 'RatingPopulation', 'Country', 'CountryName', 'Population')
+    cinematic_impact = sorting_and_mapping(gdp_ppl_df, cinematic_impact, 'gdpRating', 'country', 'CountryName', 'GDP')
+    cinematic_impact = sorting_and_mapping(gdp_ppl_df, cinematic_impact, 'populationRating', 'country', 'CountryName', 'Population')
 
-    # condition_to_drop = (pd.isna(cinematic_impact['RatingGDP'])) | (pd.isna(cinematic_impact['RatingPopulation']))
-    # cinematic_impact.drop(cinematic_impact[condition_to_drop], axis=1, inplace=True)
-
-    cinematic_impact = cinematic_impact.sort_values('RatingStrongImpact', ascending=True)
-    cinematic_impact = cinematic_impact.reset_index(drop=True)
+    print('---------------------------')
+    print('CINEMATIC IMPACT. HEGEMONY')
+    print('---------------------------')
+    cinematic_impact = task2_postprocessing_and_display(cinematic_impact)
     print(cinematic_impact.head(10))
+
+    #Написать функции дисплей + профайлер
+    #Pip инсталлинг
+    #Добавить также количество голосов = популярность, средняя популярность, нормализированная популярность, замерджить с cinematic impact и взять вес в стронг импакт
+    #комментарии
