@@ -5,3 +5,4 @@
 /build
 /dist
 /Film_ranking.egg-info
+*.pytest_cache
