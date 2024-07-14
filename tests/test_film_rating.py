@@ -1,6 +1,6 @@
-import country_analyzes as ca
-import director_analyzes as da
-import country_index as ci
+import filmranking.country_analyzes as ca
+import filmranking.director_analyzes as da
+import filmranking.country_index as ci
 import pandas as pd 
 
 def test_min_max():
