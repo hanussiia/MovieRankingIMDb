@@ -1,5 +1,5 @@
-import country_analizes as ca
-import director_analizes as da
+import country_analyzes as ca
+import director_analyzes as da
 import country_index as ci
 import pandas as pd 
 
