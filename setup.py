@@ -4,7 +4,7 @@ VERSION = '0.0.1'
 DESCRIPTION = 'Final Project "FILM RANKING" for Python course mimuw'
 
 setup(
-    name="Film-ranking",
+    name="filmrank",
     version=VERSION,
     author="Hanna Bernikova",
     author_email="<hb448385@students.mimuw.edu.pl>",
