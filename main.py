@@ -1,13 +1,13 @@
 import argparse
-import director_analizes as da
-import country_analizes as ca
+import director_analyzes as da
+import country_analyzes as ca
 import os
 
 
 def isExists(path):
     return os.path.exists(path)
 
-
+#
 def validate_pathes(args):
     pathes = [args.ratings_path, args.basics_path, args.crew_path, args.akas_path, args.name_path, args.gdp_path, args.population_path]
     for path in pathes:
@@ -48,7 +48,7 @@ def main():
          raise Exception('Start_date must be lower then end_date or equals!')
 
     if validate_pathes(args):
-        #try:
+        try:
             if args.analize == 'country':
                     country_pathes = [args.ratings_path, args.basics_path, args.akas_path, args.gdp_path, args.population_path]
                     ca.analiza(country_pathes, args.n, args.start_date, args.end_date, args.genre)
@@ -57,9 +57,9 @@ def main():
                     director_pathes = [args.ratings_path, args.basics_path, args.crew_path, args.name_path]
                     da.analiza(director_pathes, args.n, args.start_date, args.end_date, args.genre)
         
-        #except Exception as excep:
-            # print(excep)
-            # print(f"Something went wrong!")
+        except Exception as excep:
+            print(excep)
+            print(f"Something went wrong!")
 
 
 if __name__ == '__main__':
