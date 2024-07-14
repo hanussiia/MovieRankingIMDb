@@ -2,7 +2,8 @@ import argparse
 import director_analyzes as da
 import country_analyzes as ca
 import os
-
+import cProfile
+import pstats
 
 def isExists(path):
     return os.path.exists(path)
