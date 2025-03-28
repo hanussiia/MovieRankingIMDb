@@ -1,5 +1,5 @@
 import pandas as pd
-import filmranking.country_index as ci
+import country_index as ci
 import numpy as np
 
 

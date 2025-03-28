@@ -1,6 +1,6 @@
 import argparse
-import filmranking.director_analyzes as da
-import filmranking.country_analyzes as ca
+import director_analyzes as da
+import country_analyzes as ca
 import os
 import cProfile
 import pstats
@@ -27,7 +27,7 @@ def main():
                         'Musical', 'Thriller', 'Film-Noir', 'Talk-Show', 'Game-Show', 'Reality-TV',
                         'Adult']
     
-    parser.add_argument('analize',choices=['director', 'country'], help="Type of analyzes, by: 'country', 'director'")
+    parser.add_argument('-analize', default= 'director', choices=['director', 'country'], help="Type of analyzes, by: 'country', 'director'")
     parser.add_argument('-start_date', default=2000, type=int, choices=range(1894, 2025), help='The start year for the analysis: in range(1894,2024). Default = 2000')
     parser.add_argument('-end_date', default=2020, type=int, required=False, choices=range(1894, 2025), help='The end year for the analysis: in range(1894,2024). Default = 2020')
     parser.add_argument('-n', default=10, type=int, required=False, help='The number of movies to be considered (default = 10)')
@@ -38,8 +38,8 @@ def main():
     parser.add_argument('-akas_path', default='title.akas.tsv.gz', type=str, help='Path to the title.akas.tsv.gz TSV file')
     parser.add_argument('-name_path', default='name.basics.tsv.gz',type=str, help='Path to the name.basics.tsv.gz TSV file')
 
-    parser.add_argument('gdp_path', type=str, help='Path to the GDP CSV file')
-    parser.add_argument('population_path', type=str, help='Path to the Population CSV file')
+    parser.add_argument('-gdp_path', default='gdp.csv', type=str, help='Path to the GDP CSV file')
+    parser.add_argument('-population_path', default='population.csv', type=str, help='Path to the Population CSV file')
 
     parser.add_argument('--genre', type=str, choices=possible_genres, help=f'The genre to filter movies')
 

@@ -1,5 +1,5 @@
 import pandas as pd
-import filmranking.country_analyzes as ca
+import country_analyzes as ca
 import numpy as np
 
 def tsv_read(ratings_path:str, basics_path:str, crew_path:str, name_path: str):
@@ -64,7 +64,7 @@ def impact_directors_calc(df: pd.DataFrame):
 
     return total_sum_by_director
 
-
+#Funkcja do liczenia odchylenia standardowego.
 def stand_deriv(df: pd.DataFrame, impact_df: pd.DataFrame, column_group: str, column_for_std: str):
     aveRating_of_directors_array = df.groupby(column_group)[column_for_std].apply(list).reset_index()
     impact_df['std'] = aveRating_of_directors_array[column_for_std].apply(lambda x: np.std(np.array(x)))
@@ -125,6 +125,7 @@ def analiza(pathes, n: int, start_date: int, end_date: int, genre:str=None):
     impact_directors = final_rating(impact_directors)
     impact_directors = display(impact_directors)
     print('--------------------')
-    print("RATING BY DIRECTORS")
+    print("RATING")
     print('--------------------')
+    impact_directors = impact_directors[impact_directors['count'] > 3]
     print(impact_directors.head(10))

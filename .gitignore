@@ -4,5 +4,5 @@
 *.pdf
 /build
 /dist
-/filmrank.egg-info
+/filmranking.egg-info
 *.pytest_cache
